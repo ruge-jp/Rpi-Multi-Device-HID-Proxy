@@ -1,0 +1,21 @@
+name: OpenHands Resolver
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  resolve:
+    if: contains(github.event.comment.body, '@openhands-agent')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run OpenHands Resolver
+        uses: All-Hands-AI/OpenHands/.github/workflows/openhands-resolver.yml@main
+        with:
+          llm_api_key: ${{ secrets.LLM_API_KEY }}
+          llm_model: ${{ secrets.LLM_MODEL }}
+          macro: "@openhands-agent"
