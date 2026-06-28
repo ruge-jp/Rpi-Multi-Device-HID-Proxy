@@ -18,4 +18,5 @@ jobs:
         with:
           llm_api_key: ${{ secrets.LLM_API_KEY }}
           llm_model: ${{ secrets.LLM_MODEL }}
+          llm_base_url: ${{ secrets.LLM_BASE_URL }}
           macro: "@openhands-agent"
