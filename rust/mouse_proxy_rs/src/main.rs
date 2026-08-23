@@ -206,9 +206,20 @@ async fn run_proxy(device_path: &str, output_path: &str) -> Result<()> {
                 match event.kind() {
                     // === キーイベント（ボタン） ===
                     InputEventKind::Key(key) => {
-                        // value: 1 = プレス, 0 = リリース
-                        let is_press = event.value() == 1;
-                        
+                        // value: 1 = プレス, 0 = リリース, 2 = オートリピート
+                        //
+                        // hid-logitech-hidpp がキーボードコレクションを持つマウス
+                        // (MX Master 3 の BLE 接続など) を Keyboard として登録すると
+                        // EV_REP が有効になり、押しっぱなしのボタンに対して value=2 が
+                        // 40ms 間隔で届く。これを「リリース」と解釈するとドラッグ中に
+                        // ホストへ button=0 を送ってしまい、押し直すまで復帰しない。
+                        // リピートは状態を変えず無視する。
+                        let is_press = match event.value() {
+                            1 => true,
+                            0 => false,
+                            _ => continue,
+                        };
+
                         // ボタンに応じた状態を更新
                         // 各ボタンは異なるビット位置を持つ
                         match key {
