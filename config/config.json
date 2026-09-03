@@ -11,7 +11,7 @@
     "spi_bus": 0,
     "spi_device": 0,
     "spi_hz": 4000000,
-    "brightness": 25,
+    "brightness": 1,
     "boot_self_test": true,
     "colors": {
       "remap_enabled": [0, 255, 0],

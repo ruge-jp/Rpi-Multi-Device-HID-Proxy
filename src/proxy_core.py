@@ -62,8 +62,8 @@ DEFAULT_CONFIG = {
         "spi_bus": 0,               # /dev/spidev{spi_bus}.{spi_device}
         "spi_device": 0,            # Keybow Mini は /dev/spidev0.0
         "spi_hz": 4000000,          # SPI クロック (Hz)。APA102 は 4-8MHz が安定
-        "brightness": 25,           # 明るさ (0-255)、APA102 グローバル輝度 5bit にマップ
-                                    # 25 は約 3/31 で室内常用に程よい控えめの明るさ
+        "brightness": 1,            # 明るさ (0-255)、APA102 グローバル輝度 5bit にマップ
+                                    # 1 は設定範囲で一番暗い点灯 (0/31 ではなく最低 1/31 を保証)
         "boot_self_test": True,     # 起動時に赤→緑→青の動作確認シーケンスを流す
         "colors": {
             "remap_enabled": [0, 255, 0],   # リマップ有効: 緑
