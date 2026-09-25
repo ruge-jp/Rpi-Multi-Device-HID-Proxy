@@ -129,7 +129,7 @@ class LedStatusManager:
             # config 側は 0-255 で書けるよう 8bit→5bit にマッピング。
             # brightness=0 は意図的な完全消灯として 0/31 を許容する。
             # 1 以上の場合は丸めで 0/31 にならないよう最低 1/31 を保証する。
-            br_8bit = max(0, min(255, int(led_settings.get("brightness", 25))))
+            br_8bit = max(0, min(255, int(led_settings.get("brightness", 1))))
             if br_8bit == 0:
                 self.global_brightness = 0
             else:

@@ -20,7 +20,7 @@
     "spi_bus": 0,
     "spi_device": 0,
     "spi_hz": 4000000,
-    "brightness": 25,
+    "brightness": 1,
     "boot_self_test": true,
     "colors": {
       "remap_enabled": [0, 255, 0],
@@ -64,7 +64,7 @@ Pimoroni Keybow Mini の APA102 LED の設定（SPI 駆動）。
 | `spi_bus` | 利用する SPI バス番号（`/dev/spidevX.Y` の X） | 0 |
 | `spi_device` | 利用する SPI デバイス番号（`/dev/spidevX.Y` の Y） | 0 |
 | `spi_hz` | SPI クロック (Hz)。APA102 は 1〜8MHz が安定 | 4000000 |
-| `brightness` | 明るさ（0-255）。APA102 のグローバル輝度 5bit にマップ。`0` を指定すると完全消灯 (0/31)。`1`〜`7` でも丸めで `0/31` にならないよう最低 `1/31` を保証 | 25 |
+| `brightness` | 明るさ（0-255）。APA102 のグローバル輝度 5bit にマップ。`0` を指定すると完全消灯 (0/31)。`1`〜`7` でも丸めで `0/31` にならないよう最低 `1/31` を保証 | 1 |
 | `boot_self_test` | 起動時に赤→緑→青のセルフテストを流すか。ハード結線確認に有用 | true |
 | `colors.remap_enabled` | リマップ有効時の色 [R,G,B] | [0,255,0] (緑) |
 | `colors.remap_disabled` | リマップ無効時の色 [R,G,B] | [255,0,0] (赤) |
