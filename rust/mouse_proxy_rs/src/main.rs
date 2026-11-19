@@ -23,7 +23,7 @@
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use evdev::{Device, InputEventKind, Key, RelativeAxisType};
+use evdev::{Device, EventSummary, KeyCode, RelativeAxisCode};
 use log::{error, info};
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -203,9 +203,9 @@ async fn run_proxy(device_path: &str, output_path: &str) -> Result<()> {
     loop {
         match input_stream.next_event().await {
             Ok(event) => {
-                match event.kind() {
+                match event.destructure() {
                     // === キーイベント（ボタン） ===
-                    InputEventKind::Key(key) => {
+                    EventSummary::Key(_, key, value) => {
                         // value: 1 = プレス, 0 = リリース, 2 = オートリピート
                         //
                         // hid-logitech-hidpp がキーボードコレクションを持つマウス
@@ -214,7 +214,7 @@ async fn run_proxy(device_path: &str, output_path: &str) -> Result<()> {
                         // 40ms 間隔で届く。これを「リリース」と解釈するとドラッグ中に
                         // ホストへ button=0 を送ってしまい、押し直すまで復帰しない。
                         // リピートは状態を変えず無視する。
-                        let is_press = match event.value() {
+                        let is_press = match value {
                             1 => true,
                             0 => false,
                             _ => continue,
@@ -223,30 +223,30 @@ async fn run_proxy(device_path: &str, output_path: &str) -> Result<()> {
                         // ボタンに応じた状態を更新
                         // 各ボタンは異なるビット位置を持つ
                         match key {
-                            Key::BTN_LEFT => state.btn_left = if is_press { 1 } else { 0 },
-                            Key::BTN_RIGHT => state.btn_right = if is_press { 2 } else { 0 },
-                            Key::BTN_MIDDLE => state.btn_middle = if is_press { 4 } else { 0 },
-                            Key::BTN_SIDE => state.btn_side = if is_press { 8 } else { 0 },
-                            Key::BTN_EXTRA => state.btn_extra = if is_press { 16 } else { 0 },
+                            KeyCode::BTN_LEFT => state.btn_left = if is_press { 1 } else { 0 },
+                            KeyCode::BTN_RIGHT => state.btn_right = if is_press { 2 } else { 0 },
+                            KeyCode::BTN_MIDDLE => state.btn_middle = if is_press { 4 } else { 0 },
+                            KeyCode::BTN_SIDE => state.btn_side = if is_press { 8 } else { 0 },
+                            KeyCode::BTN_EXTRA => state.btn_extra = if is_press { 16 } else { 0 },
                             _ => {}  // その他のキーイベントは無視
                         }
                     }
                     // === 相対軸イベント（移動、スクロール） ===
-                    InputEventKind::RelAxis(axis) => {
+                    EventSummary::RelativeAxis(_, axis, value) => {
                         match axis {
                             // X軸移動（正: 右, 負: 左）
-                            RelativeAxisType::REL_X => state.move_x = event.value() as i16,
+                            RelativeAxisCode::REL_X => state.move_x = value as i16,
                             // Y軸移動（正: 下, 負: 上）
-                            RelativeAxisType::REL_Y => state.move_y = event.value() as i16,
+                            RelativeAxisCode::REL_Y => state.move_y = value as i16,
                             // ホイールスクロール（正: 上, 負: 下）
-                            RelativeAxisType::REL_WHEEL => state.scroll_y = event.value() as i16,
+                            RelativeAxisCode::REL_WHEEL => state.scroll_y = value as i16,
                             _ => {}  // その他の軸は無視（水平スクロールなど）
                         }
                     }
                     // === 同期イベント ===
                     // イベントバッチの終了を示す
                     // このタイミングでHIDレポートを送信
-                    InputEventKind::Synchronization(_) => {
+                    EventSummary::Synchronization(..) => {
                         // 現在の状態からレポートを生成
                         let report = state.to_report();
                         
