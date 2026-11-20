@@ -20,11 +20,18 @@ source $HOME/.cargo/env
 
 ```bash
 # aarch64ターゲットの追加
-rustup target add aarch64-unknown-linux-gnu
+rustup target add aarch64-unknown-linux-musl
 
-# クロスコンパイラのインストール（Ubuntu/Debian）
-sudo apt install gcc-aarch64-linux-gnu
+# zig と cargo-zigbuild のインストール（x86_64 ホスト。~/.local/bin が PATH にある前提）
+ZIG_VERSION=0.17.1
+ZIGBUILD_VERSION=v0.24.1
+mkdir -p ~/.local/opt ~/.local/bin
+curl -fsSL "https://ziglang.org/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz" | tar -xJ -C ~/.local/opt
+ln -sf ~/.local/opt/zig-x86_64-linux-${ZIG_VERSION}/zig ~/.local/bin/zig
+curl -fsSL "https://github.com/rust-cross/cargo-zigbuild/releases/download/${ZIGBUILD_VERSION}/cargo-zigbuild-x86_64-unknown-linux-musl.tar.xz" | tar -xJ -C ~/.local/bin --strip-components=1 --wildcards '*/cargo-zigbuild'
 ```
+
+aarch64 向けのバイナリは musl の静的リンクなので、Pi 側の glibc の版に依存しません。
 
 ### Python依存関係
 
@@ -66,14 +73,13 @@ cd rust/mouse_proxy_rs
 cargo build --release
 
 # クロスコンパイル（aarch64）
-CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
-  cargo build --release --target aarch64-unknown-linux-gnu
+cargo zigbuild --release --target aarch64-unknown-linux-musl
 ```
 
 バイナリは以下に生成されます:
 
 - ネイティブ: `target/release/mouse_proxy_rs`
-- クロスコンパイル: `target/aarch64-unknown-linux-gnu/release/mouse_proxy_rs`
+- クロスコンパイル: `target/aarch64-unknown-linux-musl/release/mouse_proxy_rs`
 
 #### 2. Pythonスクリプト
 
@@ -117,20 +123,12 @@ sudo python3 src/keyboard_proxy.py
 
 ### クロスコンパイルエラー
 
-リンカーが見つからない場合:
-
-```bash
-# リンカーのインストール
-sudo apt install gcc-aarch64-linux-gnu
-
-# 環境変数の設定
-export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-```
+`zig` または `cargo zigbuild` が見つからない場合は、[クロスコンパイル環境](#クロスコンパイル環境オプション) の手順で入れ、`zig version` と `cargo zigbuild --version` が通ることを確認してください。
 
 ### Rustターゲットがない
 
 ```bash
-rustup target add aarch64-unknown-linux-gnu
+rustup target add aarch64-unknown-linux-musl
 ```
 
 ### Python依存関係エラー

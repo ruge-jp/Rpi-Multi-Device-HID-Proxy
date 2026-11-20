@@ -6,14 +6,14 @@
 # このスクリプトは、Multi HID Proxyの配布用アーカイブを作成します。
 #
 # ビルド内容:
-#   - Rust製マウスプロキシのクロスコンパイル
+#   - Rust製マウスプロキシのクロスコンパイル（musl の静的バイナリ）
 #   - 必要なファイルの収集
 #   - 配布用tarアーカイブの作成
 #
 # 前提条件:
 #   - Rust開発環境（cargo）
-#   - クロスコンパイル用ツールチェイン（aarch64-linux-gnu-gcc）
-#   - aarch64ターゲット（rustup target add aarch64-unknown-linux-gnu）
+#   - zig と cargo-zigbuild（クロスコンパイルのリンカー）
+#   - aarch64ターゲット（rustup target add aarch64-unknown-linux-musl）
 #
 # 使用方法:
 #   ./build_release.sh              # デフォルト: aarch64 (Raspberry Pi)
@@ -92,15 +92,19 @@ BUILD_CMD="cargo build --release"
 if [ -n "$TARGET_ARCH" ] && [ "$TARGET_ARCH" != "native" ]; then
     echo "ターゲットアーキテクチャ: $TARGET_ARCH"
     
-    if [[ "$TARGET_ARCH" == "aarch64" || "$TARGET_ARCH" == "aarch64-unknown-linux-gnu" ]]; then
-        # aarch64 (ARM 64-bit) ターゲット
-        TARGET_TRIPLE="aarch64-unknown-linux-gnu"
-        LINKER="aarch64-linux-gnu-gcc"
+    if [[ "$TARGET_ARCH" == "aarch64" || "$TARGET_ARCH" == "aarch64-unknown-linux-musl" ]]; then
+        # aarch64 (ARM 64-bit) ターゲット。musl で静的リンクし、Pi 側の glibc の版に依存しない
+        TARGET_TRIPLE="aarch64-unknown-linux-musl"
 
-        # クロスコンパイル用リンカーの存在確認
-        if ! command -v "$LINKER" &> /dev/null; then
-            echo "エラー: リンカー '$LINKER' が見つかりません。"
-            echo "インストールしてください: sudo apt install gcc-aarch64-linux-gnu"
+        # クロスコンパイル用ツールの存在確認
+        if ! command -v zig &> /dev/null; then
+            echo "エラー: zig が見つかりません。"
+            echo "docs/BUILD.md の「クロスコンパイル環境」に従って入れてください。"
+            exit 1
+        fi
+        if ! cargo zigbuild --help &> /dev/null; then
+            echo "エラー: cargo-zigbuild が見つかりません。"
+            echo "docs/BUILD.md の「クロスコンパイル環境」に従って入れてください。"
             exit 1
         fi
 
@@ -111,9 +115,7 @@ if [ -n "$TARGET_ARCH" ] && [ "$TARGET_ARCH" != "native" ]; then
              # 続行する（すでにあるかもしれないので）
         fi
 
-        # リンカーを環境変数で指定
-        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="$LINKER"
-        BUILD_CMD="cargo build --release --target $TARGET_TRIPLE"
+        BUILD_CMD="cargo zigbuild --release --target $TARGET_TRIPLE"
         
         # クロスコンパイル時のバイナリパス
         BINARY_PATH="${PROJECT_ROOT}/rust/mouse_proxy_rs/target/$TARGET_TRIPLE/release/mouse_proxy_rs"

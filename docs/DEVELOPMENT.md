@@ -17,9 +17,11 @@
 x86 ホストでクロスコンパイルする場合:
 
 ```bash
-sudo apt install -y python3-evdev python3-gpiozero gcc-aarch64-linux-gnu jq
-rustup target add aarch64-unknown-linux-gnu
+sudo apt install -y python3-evdev python3-gpiozero jq
+rustup target add aarch64-unknown-linux-musl
 ```
+
+加えて zig と cargo-zigbuild が必要です。入れ方は [BUILD.md](BUILD.md#クロスコンパイル環境オプション) を参照してください。
 
 ### 1.3 リポジトリのクローン
 
